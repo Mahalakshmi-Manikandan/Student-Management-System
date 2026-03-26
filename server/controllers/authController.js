@@ -92,7 +92,7 @@ exports.login = (req, res) => {
     const accessToken = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "15m" }
+      { expiresIn: "1h" }
     );
 
     const refreshToken = jwt.sign(
@@ -147,7 +147,7 @@ exports.refreshToken = (req, res) => {
       const newAccessToken = jwt.sign(
         { id: user.id, role: result[0].role },
         process.env.JWT_SECRET,
-        { expiresIn: "15m" }
+        { expiresIn: "1h" }
       );
 
       res.json({ accessToken: newAccessToken });

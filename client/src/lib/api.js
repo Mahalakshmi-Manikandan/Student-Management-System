@@ -16,7 +16,7 @@ API.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
-    if (error.response.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
       try {
         const refreshToken = localStorage.getItem("refreshToken");
@@ -27,12 +27,20 @@ API.interceptors.response.use(
         }
 
         const { data } = await axios.post('http://localhost:5000/api/auth/refresh-token', { token: refreshToken });
-        
+
         localStorage.setItem('accessToken', data.accessToken);
-        
+
         API.defaults.headers.common['Authorization'] = 'Bearer ' + data.accessToken;
         originalRequest.headers['Authorization'] = 'Bearer ' + data.accessToken;
-        
+
+        // For multipart/form-data requests, remove the stale Content-Type header
+        // so Axios recalculates it with the correct multipart boundary on retry.
+        const contentType = originalRequest.headers['Content-Type'] || originalRequest.headers['content-type'];
+        if (typeof contentType === 'string' && contentType.includes('multipart/form-data')) {
+          delete originalRequest.headers['Content-Type'];
+          delete originalRequest.headers['content-type'];
+        }
+
         return API(originalRequest);
       } catch (refreshError) {
         localStorage.clear();

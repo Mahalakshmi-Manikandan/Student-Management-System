@@ -1,4 +1,4 @@
-const db = require("./config/db");
+const db = require("../config/db");
 
 /* ================= USER MODEL ================= */
 const User = {
@@ -71,14 +71,22 @@ const StudyPlanner = {
 /* ================= TIMETABLE MODEL ================= */
 const Timetable = {
   create: (data, callback) => {
-    const sql = `INSERT INTO timetable 
-    (department, year, day, period, subject)
-    VALUES (?, ?, ?, ?, ?)`;
-    db.query(sql, Object.values(data), callback);
+    const sql = `INSERT INTO timetable (department, course, year, day, period, subject) VALUES (?, ?, ?, ?, ?, ?)`;
+    db.query(sql, [data.department, data.course, data.year, data.day, data.period, data.subject], callback);
   },
 
-  getAll: (callback) => {
-    db.query("SELECT * FROM timetable", callback);
+  bulkCreate: (values, callback) => {
+    const sql = "INSERT INTO timetable (department, course, year, day, period, subject) VALUES ?";
+    db.query(sql, [values], callback);
+  },
+
+  deleteByFilter: (department, course, year, callback) => {
+    const sql = "DELETE FROM timetable WHERE department=? AND course=? AND year=?";
+    db.query(sql, [department, course, year], callback);
+  },
+
+  getByFilter: (department, course, year, callback) => {
+    db.query("SELECT * FROM timetable WHERE department=? AND course=? AND year=?", [department, course, year], callback);
   }
 };
 

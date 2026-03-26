@@ -37,19 +37,21 @@ export default function AdminTimetableBuilder() {
       if (!file) return alert("Select file");
   
       const formData = new FormData();
-      formData.append("file", file);
       formData.append("department", department);
       formData.append("course", course);
       formData.append("year", year);
+      formData.append("file", file);
   
-      try {
-        await API.post("/admin/upload-timetable", formData, {
-          headers: { "Content-Type": "multipart/form-data" }
-        });
-  
+    try {
+        await API.post("/admin/upload-timetable", formData);
+
         alert("Uploaded Successfully");
       } catch (err) {
-        alert("Upload failed");
+        if (err.response?.status === 401) {
+          alert("Session expired. Please log in again.");
+        } else {
+          alert(err.response?.data?.message || "Upload failed");
+        }
       }
     };
 
@@ -135,13 +137,17 @@ export default function AdminTimetableBuilder() {
             {courses.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
 
-          <input
-            type="text"
-            placeholder="Year"
+          <select
             value={year}
             onChange={(e) => setYear(e.target.value)}
-            className="border p-2 rounded-md w-32"
-          />
+            className="border p-2 rounded-md"
+          >
+            <option value="">Select Year</option>
+            <option value="1">1st Year</option>
+            <option value="2">2nd Year</option>
+            <option value="3">3rd Year</option>
+            <option value="4">4th Year</option>
+          </select>
 
           <input
             type="file"

@@ -1,4 +1,5 @@
-const db = require("../config/db");
+const { User, Timetable } = require("../models");
+const db = require("../config/db"); // Keep for custom dashboard queries
 const xlsx = require("xlsx");
 const bcrypt = require("bcryptjs");
 
@@ -63,85 +64,91 @@ exports.dashboard = (req, res) => {
 // ✅ GET TIMETABLE
 exports.getTimetable = (req, res) => {
   const { department, course, year } = req.query;
-
-  db.query(
-    "SELECT * FROM timetable WHERE department=? AND course=? AND year=?",
-    [department, course, year],
-    (err, result) => {
-      if (err) return res.status(500).json(err);
-      res.json(result);
-    }
-  );
+  
+  Timetable.getByFilter(department, course, year, (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.json(result);
+  });
 };
 
 // ✅ UPLOAD EXCEL
 exports.uploadTimetable = (req, res) => {
   try {
-    const { department, year } = req.body;
+    const { department, course, year } = req.body;
 
     const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const data = xlsx.utils.sheet_to_json(sheet);
 
-    const values = data.map(row => [
-      department,
-      course,
-      year,
-      row.Day,
-      row.Period,
-      row.Subject
-    ]);
-
-    db.query(
-      "DELETE FROM timetable WHERE department=? AND course=? AND year=?",
-      [department, course, year],
-      (err) => {
-        if (err) return res.status(500).json(err);
-        db.query(
-          "INSERT INTO timetable (department, course, year, day, period, subject) VALUES ?",
-          [values],
-          (err) => {
-            if (err) return res.status(500).json(err);
-            res.json({ message: "Uploaded" });
-          }
-        );
+    const values = [];
+    data.forEach(row => {
+      const day = row.Day;
+      if (!day) return;
+      for (let i = 1; i <= 8; i++) {
+        const subject = row[`P${i}`];
+        if (subject && subject.trim() !== "") {
+          values.push([department, course, year, day, i, subject]);
+        }
       }
-    );
+    });
+
+    Timetable.deleteByFilter(department, course, year, (err) => {
+      if (err) {
+        console.error("Error deleting existing timetable:", err);
+        return res.status(500).json({ message: "Database error during timetable deletion. Ensure 'course' column exists in 'timetable' table.", error: err.sqlMessage || err.message });
+      }
+      if (values.length > 0) {
+        Timetable.bulkCreate(values, (err) => {
+          if (err) {
+            console.error("Error during bulkCreate for timetable:", err);
+            return res.status(500).json({ message: "Database error during timetable upload. Ensure 'course' column exists in 'timetable' table.", error: err.sqlMessage || err.message });
+          }
+          res.json({ message: "Uploaded Successfully" });
+        });
+      } else {
+        res.json({ message: "No data found in Excel" });
+      }
+    }); // Closing parenthesis for the Timetable.deleteByFilter callback and call
   } catch (err) {
-    res.status(500).json(err);
+    console.error("Server error during timetable upload:", err);
+    res.status(500).json({ message: "Server error during timetable upload.", error: err.message });
   }
 };
 
-// ✅ MANUAL SAVE
+//  MANUAL SAVE
 exports.saveTimetable = (req, res) => {
   try {
-    const { department, year, timetable } = req.body;
+    const { department, course, year, timetable } = req.body;
 
-    db.query(
-      "DELETE FROM timetable WHERE department=? AND course=? AND year=?",
-      [department, course, year],
-      (err) => {
-        if (err) return res.status(500).json(err);
-        const values = timetable.map(t => [
-          department,
-          course,
-          year,
-          t.day,
-          t.period,
-          t.subject
-        ]);
-        db.query(
-          "INSERT INTO timetable (department, course, year, day, period, subject) VALUES ?",
-          [values],
-          (err) => {
-            if (err) return res.status(500).json(err);
-            res.json({ message: "Saved" });
-          }
-        );
+    Timetable.deleteByFilter(department, course, year, (err) => {
+      if (err) {
+        console.error("Error deleting existing timetable:", err);
+        return res.status(500).json({ message: "Database error during timetable deletion. Ensure 'course' column exists in 'timetable' table.", error: err.sqlMessage || err.message });
       }
-    );
+      const values = timetable.map(t => [
+        department,
+        course,
+        year,
+        t.day,
+        t.period,
+        t.subject
+      ]);
+
+      if (values.length > 0) {
+        Timetable.bulkCreate(values, (err) => {
+          if (err) {
+            console.error("Error during bulkCreate for timetable:", err);
+            return res.status(500).json({ message: "Database error during timetable save. Ensure 'course' column exists in 'timetable' table.", error: err.sqlMessage || err.message });
+          }
+          res.json({ message: "Saved Successfully" });
+        });
+      } else {
+        res.status(400).json({ message: "Timetable is empty" });
+      }
+    });
   } catch (err) {
-    res.status(500).json(err);
+    console.error("Server error during timetable save:", err);
+    res.status(500).json({ message: "Server error during timetable save.", error: err.message });
   }
 };
 
@@ -208,24 +215,6 @@ exports.getDepartments = (req, res) => {
 };
 
 // ✅ GET DISTINCT COURSES
-exports.getCourses = (req, res) => {
-  const sql = "SELECT DISTINCT course FROM users WHERE course IS NOT NULL AND course != '' ORDER BY course";
-  db.query(sql, (err, results) => {
-    if (err) return res.status(500).json(err);
-    res.json(results.map(row => row.course));
-  });
-};
-
-// ✅ GET DISTINCT DEPARTMENTS (From Users Table)
-exports.getDepartments = (req, res) => {
-  const sql = "SELECT DISTINCT department FROM users WHERE department IS NOT NULL AND department != '' ORDER BY department";
-  db.query(sql, (err, results) => {
-    if (err) return res.status(500).json(err);
-    res.json(results.map(row => row.department));
-  });
-};
-
-// ✅ GET DISTINCT COURSES (From Users Table)
 exports.getCourses = (req, res) => {
   const sql = "SELECT DISTINCT course FROM users WHERE course IS NOT NULL AND course != '' ORDER BY course";
   db.query(sql, (err, results) => {
