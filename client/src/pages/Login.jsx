@@ -66,7 +66,10 @@ export default function Login() {
       </div>
 
       {/* RIGHT SIDE */}
-      <div className="w-full md:w-1/2 flex items-center justify-center bg-gray-100 relative">
+      <div
+        className="w-full md:w-1/2 flex items-center justify-center bg-white bg-contain bg-no-repeat bg-center relative"
+        style={{ backgroundImage: "url('/college.png')" }}
+      >
 
         {/* LOGO */}
         <img
@@ -76,7 +79,7 @@ export default function Login() {
         />
 
         {/* CARD */}
-        <div className="bg-white p-10 rounded-2xl shadow-lg w-[90%] max-w-md">
+        <div className="bg-white/80 p-10 rounded-2xl shadow-lg w-[90%] max-w-md backdrop-blur-sm border border-white/20">
 
           <h2 className="text-3xl font-bold text-gray-800 mb-2">
             Welcome Back 👋

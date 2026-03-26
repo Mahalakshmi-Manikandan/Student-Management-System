@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const auth = require("../middleware/authMiddleware");
 
 const {
   register,
@@ -7,7 +8,8 @@ const {
   refreshToken,
   logout,
   forgotPassword,
-  resetPassword
+  resetPassword,
+  getMe,
 } = require("../controllers/authController");
 
 
@@ -34,5 +36,7 @@ router.post("/forgot-password", forgotPassword);
 // Reset Password
 router.post("/reset-password/:token", resetPassword);
 
+// Get current user
+router.get("/me", auth, getMe);
 
 module.exports = router;

@@ -34,7 +34,10 @@ export default function Register() {
     <div className="flex h-screen">
 
       {/* LEFT SIDE FORM */}
-      <div className="w-full md:w-1/2 flex items-center justify-center bg-gray-100 relative">
+      <div
+        className="w-full md:w-1/2 flex items-center justify-center bg-white bg-contain bg-no-repeat bg-center relative"
+        style={{ backgroundImage: "url('/college.png')" }}
+      >
 
         {/* LOGO */}
         <img
@@ -44,7 +47,7 @@ export default function Register() {
         />
 
         {/* FIXED SIZE CARD */}
-        <div className="bg-white rounded-2xl shadow-xl w-[420px] h-[600px] p-6 flex flex-col">
+        <div className="bg-white/80 rounded-2xl shadow-xl w-[420px] h-[600px] p-6 flex flex-col backdrop-blur-sm border border-white/20">
 
           <h2 className="text-2xl font-bold text-gray-800 mb-1">
             Create Account 🎓

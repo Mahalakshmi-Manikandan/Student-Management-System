@@ -24,9 +24,10 @@ export default function Navbar() {
 
         {role === "admin" && (
           <>
-            <Link to="/admin/dashboard">Dashboard</Link>
-            <Link to="/admin/students">Student List</Link>
-            <Link to="/admin/staff">Staff List</Link>
+          <Link to="/admin">Dashboard</Link>
+            <Link to="/admin/dashboard">Admin</Link>
+            <Link to="/admin/students">Student</Link>
+            <Link to="/admin/staff">Staff</Link>
             <Link to="/admin/timetable">Timetable</Link>
           </>
         )}
@@ -34,9 +35,9 @@ export default function Navbar() {
         {role === "staff" && (
           <>
             <Link to="/staff">Dashboard</Link>
-            <Link to="#">Attendance</Link>
-            <Link to="#">Assignments</Link>
-            <Link to="#">Timetable</Link>
+            <Link to="/staff/attendance">Attendance</Link>
+            <Link to="/staff/assignment">Assignments</Link>
+            <Link to="/staff/timetable">Timetable</Link>
           </>
         )}
 

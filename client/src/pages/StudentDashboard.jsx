@@ -43,17 +43,17 @@ Student Dashboard
 
 <div className="grid grid-cols-3 gap-6 mb-8">
 
-<div className="bg-white shadow p-5 rounded">
+<div className="bg-white/80 shadow p-5 rounded backdrop-blur-sm border border-white/20">
 <h3 className="text-gray-500">Total Attendance</h3>
 <p className="text-3xl font-bold">{totalAttendance}%</p>
 </div>
 
-<div className="bg-white shadow p-5 rounded">
+<div className="bg-white/80 shadow p-5 rounded backdrop-blur-sm border border-white/20">
 <h3 className="text-gray-500">Pending Assignments</h3>
 <p className="text-3xl font-bold">{assignments.length}</p>
 </div>
 
-<div className="bg-white shadow p-5 rounded">
+<div className="bg-white/80 shadow p-5 rounded backdrop-blur-sm border border-white/20">
 <h3 className="text-gray-500">Today's Classes</h3>
 <p className="text-3xl font-bold">5</p>
 </div>
@@ -64,7 +64,7 @@ Student Dashboard
 
 <div className="grid grid-cols-2 gap-6 mb-8">
 
-<div className="bg-white p-6 shadow rounded">
+<div className="bg-white/80 p-6 shadow rounded backdrop-blur-sm border border-white/20">
 
 <h2 className="font-semibold mb-4">
 Attendance Chart
@@ -95,7 +95,7 @@ fill={COLORS[index % COLORS.length]}
 
 </div>
 
-<div className="bg-white p-6 shadow rounded">
+<div className="bg-white/80 p-6 shadow rounded backdrop-blur-sm border border-white/20">
 
 <h2 className="font-semibold mb-4">
 Weekly Study Time
@@ -119,7 +119,7 @@ Weekly Study Time
 
 <div className="grid grid-cols-2 gap-6">
 
-<div className="bg-white p-6 shadow rounded">
+<div className="bg-white/80 p-6 shadow rounded backdrop-blur-sm border border-white/20">
 
 <h2 className="font-semibold mb-4">
 Assignments
@@ -153,7 +153,7 @@ Assignments
 
 </div>
 
-<div className="bg-white p-6 shadow rounded">
+<div className="bg-white/80 p-6 shadow rounded backdrop-blur-sm border border-white/20">
 
 <h2 className="font-semibold mb-4">
 Timetable

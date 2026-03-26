@@ -139,13 +139,19 @@ exports.refreshToken = (req, res) => {
   jwt.verify(token, process.env.REFRESH_SECRET, (err, user) => {
     if (err) return res.status(403).json({ message: "Invalid refresh token" });
 
-    const newAccessToken = jwt.sign(
-      { id: user.id },
-      process.env.JWT_SECRET,
-      { expiresIn: "15m" }
-    );
+    // Fetch role from DB so the new access token has role included
+    db.query("SELECT role FROM users WHERE id=?", [user.id], (dbErr, result) => {
+      if (dbErr || result.length === 0)
+        return res.status(403).json({ message: "User not found" });
 
-    res.json({ accessToken: newAccessToken });
+      const newAccessToken = jwt.sign(
+        { id: user.id, role: result[0].role },
+        process.env.JWT_SECRET,
+        { expiresIn: "15m" }
+      );
+
+      res.json({ accessToken: newAccessToken });
+    });
   });
 };
 
@@ -220,4 +226,25 @@ exports.resetPassword = async (req, res) => {
       );
     }
   );
+};
+
+exports.getMe = (req, res) => {
+  const userId = req.user.id;
+
+  if (!userId) {
+    return res.status(401).json({ message: "Not authenticated" });
+  }
+
+  const sql =
+    "SELECT id, name, email, role, department, designation, course, year, duration FROM users WHERE id = ?";
+  db.query(sql, [userId], (err, result) => {
+    if (err) {
+      console.error("DB Error:", err);
+      return res.status(500).json({ message: "Database error" });
+    }
+    if (result.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(result[0]);
+  });
 };
