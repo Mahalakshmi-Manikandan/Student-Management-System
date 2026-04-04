@@ -137,19 +137,19 @@ export default function StudentDashboard() {
       <h1 className="text-2xl font-bold mb-6">Student Dashboard</h1>
 
       {/* Top 4 Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
         <StatCard
           icon={<CalendarCheck className="w-5 h-5" />}
           label="Total Attendance"
           value={`${overallAttendance}%`}
           color="bg-blue-100/80 text-blue-900"
         />
-        <StatCard
+        {/* <StatCard
           icon={<BookOpen className="w-5 h-5" />}
           label="Pending Assignments"
           value={pendingCount}
           color="bg-amber-100/80 text-amber-900"
-        />
+        /> */}
         <StatCard
           icon={<Clock className="w-5 h-5" />}
           label="Today's Remaining Classes"
@@ -234,7 +234,7 @@ export default function StudentDashboard() {
       </div>
 
       {/* Row 3: Assignments + Study Planner */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div >
 
         {/* Assignment List */}
         {/* <div className="bg-white/80 p-6 rounded-xl shadow backdrop-blur-sm border border-white/20">
