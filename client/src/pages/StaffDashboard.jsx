@@ -45,15 +45,15 @@ export default function StaffDashboard() {
       .finally(() => setAssignLoading(false));
   };
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "-";
-    return new Date(dateStr).toLocaleDateString("en-IN", {
-      day: "2-digit", month: "short", year: "numeric",
-    });
-  };
+  // const formatDate = (dateStr) => {
+  //   if (!dateStr) return "-";
+  //   return new Date(dateStr).toLocaleDateString("en-IN", {
+  //     day: "2-digit", month: "short", year: "numeric",
+  //   });
+  // };
 
-  const yearLabel = (y) =>
-    ({ 1: "1st Year", 2: "2nd Year", 3: "3rd Year", 4: "4th Year" }[y] || y);
+  // const yearLabel = (y) =>
+  //   ({ 1: "1st Year", 2: "2nd Year", 3: "3rd Year", 4: "4th Year" }[y] || y);
 
   return (
     <Layout>
@@ -84,14 +84,14 @@ export default function StaffDashboard() {
       </div>
 
       {/* ── Assignments Section ── */}
-      <div className="bg-white/80 p-6 rounded-xl shadow backdrop-blur-sm border border-white/20">
-        <div className="flex items-center gap-2 mb-5">
+      {/* <div className="bg-white/80 p-6 rounded-xl shadow backdrop-blur-sm border border-white/20"> */}
+        {/* <div className="flex items-center gap-2 mb-5">
           <BookOpen className="w-5 h-5 text-blue-600" />
           <h2 className="text-lg font-semibold">Assigned Assignments</h2>
-        </div>
+        </div> */}
 
         {/* Filters */}
-        <div className="flex flex-wrap gap-3 mb-5">
+        {/* <div className="flex flex-wrap gap-3 mb-5">
           <select
             value={filterDept}
             onChange={(e) => setFilterDept(e.target.value)}
@@ -133,10 +133,10 @@ export default function StaffDashboard() {
             <Search className="w-4 h-4" />
             Search
           </button>
-        </div>
+        </div> */}
 
         {/* Results */}
-        {assignLoading ? (
+        {/* {assignLoading ? (
           <p className="text-gray-400 text-sm py-6 text-center">Loading assignments...</p>
         ) : searched && assignments.length === 0 ? (
           <div className="text-center py-10 border-2 border-dashed border-gray-200 rounded-xl">
@@ -177,7 +177,7 @@ export default function StaffDashboard() {
             Use the filters above and click <strong>Search</strong> to view assignments.
           </p>
         ) : null}
-      </div>
+       </div> */}
     </Layout>
   );
 }
