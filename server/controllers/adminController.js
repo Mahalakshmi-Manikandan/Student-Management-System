@@ -1,7 +1,9 @@
 const { User, Timetable } = require("../models");
-const db = require("../config/db"); // Keep for custom dashboard queries
+const db = require("../config/db");
 const xlsx = require("xlsx");
 const bcrypt = require("bcryptjs");
+const fs = require("fs");
+const path = require("path");
 
 // ✅ GET STUDENTS WITH FILTER
 exports.getStudents = (req, res) => {
@@ -71,44 +73,72 @@ exports.getTimetable = (req, res) => {
   });
 };
 
-// ✅ UPLOAD EXCEL
+// ✅ UPLOAD EXCEL — saves rows to timetable table AND saves file to disk
 exports.uploadTimetable = (req, res) => {
   try {
     const { department, course, year } = req.body;
 
+    if (!department || !course || !year) {
+      return res.status(400).json({ message: "department, course and year are required." });
+    }
+
+    // ── Save file to disk ──────────────────────────────────────────────────
+    const uploadDir = path.join(__dirname, "../uploads/timetables");
+    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+    const filename = `${Date.now()}-${department}-${course}-${year}.xlsx`
+      .replace(/\s+/g, "_");
+    const filePath = path.join(uploadDir, filename);
+    fs.writeFileSync(filePath, req.file.buffer);
+    const fileUrl = `/uploads/timetables/${filename}`;
+
+    // ── Parse Excel rows ───────────────────────────────────────────────────
     const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const data = xlsx.utils.sheet_to_json(sheet);
 
     const values = [];
     data.forEach(row => {
-      const day = row.Day;
+      const day = (row.Day || "").toString().trim().toUpperCase();
       if (!day) return;
       for (let i = 1; i <= 8; i++) {
         const subject = row[`P${i}`];
-        if (subject && subject.trim() !== "") {
-          values.push([department, course, year, day, i, subject]);
+        if (subject && subject.toString().trim() !== "") {
+          values.push([department, course, year, day, i, subject.toString().trim()]);
         }
       }
     });
 
+    // ── Persist to DB ──────────────────────────────────────────────────────
+    const saveFileRecord = () => {
+      db.query(
+        `INSERT INTO timetable_uploads (department, course, year, file_path)
+         VALUES (?, ?, ?, ?)`,
+        [department, course, year, fileUrl],
+        (err) => { if (err) console.error("timetable_uploads insert error:", err); }
+      );
+    };
+
     Timetable.deleteByFilter(department, course, year, (err) => {
       if (err) {
         console.error("Error deleting existing timetable:", err);
-        return res.status(500).json({ message: "Database error during timetable deletion. Ensure 'course' column exists in 'timetable' table.", error: err.sqlMessage || err.message });
+        return res.status(500).json({ message: "DB error during deletion.", error: err.sqlMessage || err.message });
       }
+
       if (values.length > 0) {
         Timetable.bulkCreate(values, (err) => {
           if (err) {
-            console.error("Error during bulkCreate for timetable:", err);
-            return res.status(500).json({ message: "Database error during timetable upload. Ensure 'course' column exists in 'timetable' table.", error: err.sqlMessage || err.message });
+            console.error("Error during bulkCreate:", err);
+            return res.status(500).json({ message: "DB error during upload.", error: err.sqlMessage || err.message });
           }
-          res.json({ message: "Uploaded Successfully" });
+          saveFileRecord();
+          res.json({ message: "Uploaded Successfully", file_path: fileUrl });
         });
       } else {
-        res.json({ message: "No data found in Excel" });
+        saveFileRecord();
+        res.json({ message: "No data rows found in Excel. File saved.", file_path: fileUrl });
       }
-    }); // Closing parenthesis for the Timetable.deleteByFilter callback and call
+    });
   } catch (err) {
     console.error("Server error during timetable upload:", err);
     res.status(500).json({ message: "Server error during timetable upload.", error: err.message });

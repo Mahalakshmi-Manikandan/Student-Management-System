@@ -57,7 +57,7 @@ exports.createAssignment = (req, res) => {
             return connection.rollback(() => {
               console.error("Insert Assignment Error:", err);
               connection.release();
-              res.status(500).json({ message: "Error creating assignment" });
+              res.status(500).json({ message: "Error creating assignment", error: err.sqlMessage || err.message });
             });
           }
           
@@ -72,7 +72,7 @@ exports.createAssignment = (req, res) => {
               return connection.rollback(() => {
                 console.error("Link Students Error:", err);
                 connection.release();
-                res.status(500).json({ message: "Error assigning to students" });
+                res.status(500).json({ message: "Error assigning to students – ensure student_assignments table exists with columns: student_id, assignment_id, completed", error: err.sqlMessage || err.message });
               });
             }
 
@@ -179,6 +179,55 @@ exports.getStudentCourses = (req, res) => {
   db.query(sql, (err, results) => {
     if (err) return res.status(500).json(err);
     res.json(results.map(row => row.course));
+  });
+};
+
+// GET timetable rows (staff - same filter-based logic as admin)
+exports.getTimetable = (req, res) => {
+  const { department, course, year } = req.query;
+  if (!department || !course || !year) {
+    return res.status(400).json({ message: "department, course and year are required." });
+  }
+  db.query(
+    "SELECT * FROM timetable WHERE department=? AND course=? AND year=?",
+    [department, course, year],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+      res.json(result);
+    }
+  );
+};
+
+// GET timetable Excel file URL (staff selects filter)
+exports.getTimetableFile = (req, res) => {
+  const { department, course, year } = req.query;
+  if (!department || !course || !year) return res.json({ file_path: null });
+  db.query(
+    "SELECT file_path FROM timetable_uploads WHERE department=? AND course=? AND year=? ORDER BY id DESC LIMIT 1",
+    [department, course, year],
+    (err, result) => {
+      if (err) return res.status(500).json(err);
+      res.json({ file_path: result.length ? result[0].file_path : null });
+    }
+  );
+};
+
+// GET assignments filtered by department / course / year
+exports.getAssignments = (req, res) => {
+  const { department, course, year } = req.query;
+
+  let sql = "SELECT * FROM assignments WHERE 1=1";
+  const params = [];
+
+  if (department) { sql += " AND department = ?"; params.push(department); }
+  if (course)     { sql += " AND course = ?";     params.push(course); }
+  if (year)       { sql += " AND year = ?";       params.push(year); }
+
+  sql += " ORDER BY created_at DESC";
+
+  db.query(sql, params, (err, result) => {
+    if (err) return res.status(500).json(err);
+    res.json(result);
   });
 };
 

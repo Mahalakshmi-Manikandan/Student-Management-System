@@ -36,7 +36,7 @@ export default function Navbar() {
           <>
             <Link to="/staff">Dashboard</Link>
             <Link to="/staff/attendance">Attendance</Link>
-            <Link to="/staff/assignment">Assignments</Link>
+            {/* <Link to="/staff/assignment">Assignments</Link> */}
             <Link to="/staff/timetable">Timetable</Link>
           </>
         )}
@@ -44,9 +44,6 @@ export default function Navbar() {
         {role === "student" && (
           <>
             <Link to="/student">Dashboard</Link>
-            <Link to="#">Assignments</Link>
-            <Link to="#">Attendance</Link>
-            <Link to="#">Study Planner</Link>
           </>
         )}
 
